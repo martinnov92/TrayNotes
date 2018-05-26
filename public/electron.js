@@ -12,7 +12,7 @@ let mainWindow;
 const WIDTH = 500;
 const HEIGHT = 600;
 const MAX_CHARS = 30;
-const ASSETS_DIR = path.join(__dirname, 'assets');
+const ASSETS_DIR = path.join(__dirname, '../assets');
 
 function createWindow () {
     // skrýt ikonu v docku hned po startu
@@ -31,7 +31,15 @@ function createWindow () {
     });
 
     // načtení prostředí okna
-    mainWindow.loadFile('renderer/index.html');
+    if (process.env.NODE_ENV === 'production') {
+        mainWindow.loadURL(url.format({
+            pathname: path.join(__dirname, '../build/index.html'),
+            protocol: 'file:',
+            slashes: true
+        }));
+    } else {
+        mainWindow.loadURL('http://localhost:3000');
+    }
 
     // nastavení tray icony
     const iconName = 'img/note@2x.png';
