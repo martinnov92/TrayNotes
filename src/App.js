@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 
+const electron = window.require('electron');
+const ipcRenderer = electron.ipcRenderer;
+
 class App extends Component {
     constructor() {
         super();
 
         this.state = {
             value: '',
-            events: [],
+            notes: [],
         };
     }
 
@@ -23,19 +26,25 @@ class App extends Component {
             return;
         }
 
-        const events = [...this.state.events];
-        events.push(this.state.value);
+        const notes = [...this.state.notes];
+        notes.push(this.state.value);
 
         this.setState({
-            events,
+            notes,
             value: '',
+        }, () => {
+            ipcRenderer.send('notes', this.state.notes);
         });
+    }
+
+    handleNoteDelete = (e) => {
+
     }
 
     render() {
         const {
             value,
-            events,
+            notes,
         } = this.state;
 
         return (
@@ -61,12 +70,21 @@ class App extends Component {
                         </button>
                     </form>
 
-                    <ul>
+                    <ul
+                        className="notes-list"
+                    >
                         {
-                            events.map((event) => {
+                            notes.map((event) => {
                                 return (
-                                    <li>
-                                        { event }
+                                    <li
+                                        key={event}
+                                    >
+                                        <p>{ event }</p>
+                                        <button
+                                            onClick={this.handleNoteDelete}
+                                        >
+                                            x
+                                        </button>
                                     </li>
                                 );
                             })

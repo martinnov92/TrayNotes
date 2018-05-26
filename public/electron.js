@@ -3,14 +3,18 @@ const electron = require('electron');
 const {
     app,
     Tray,
+    ipcMain,
     BrowserWindow
 } = require('electron');
 
 let trayIcon;
+let interval;
 let mainWindow;
+let NOTES = [];
 
 const WIDTH = 500;
 const HEIGHT = 600;
+const TIMEOUT = 3000;
 const MAX_CHARS = 30;
 const ASSETS_DIR = path.join(__dirname, '../assets');
 
@@ -66,27 +70,32 @@ function createWindow () {
     });
 
     // dev
-    mainWindow.webContents.openDevTools()
-
-    // zobrazit poznámky hned po startu
-    setTitle('Poznámky hned po startu');
+    mainWindow.webContents.openDevTools();
 
     // main window events
     mainWindow.on('blur', () => {
         // zobrazit poznámky, pokud je okno zavřené
-        setTitle('Toto je titulek. Toto je titulek. Toto je titulek. Toto je titulek. Toto je titulek.');
+        rotateTitles(NOTES);
 
         // skrýt okno
         mainWindow.hide();
     });
 
     mainWindow.on('show', () => {
-        setTitle();
+        clearInterval(interval);
+        setDefaultIcon();
+        trayIcon.setTitle('');
+        trayIcon.setToolTip('');
     });
 
     mainWindow.on('closed', () => {
         // zničit okno
         mainWindow = null;
+    });
+
+    // 
+    ipcMain.on('notes', (event, data = []) => {
+        NOTES = data;
     });
 }
 
@@ -105,12 +114,41 @@ app.on('activate', () => {
 });
 
 // helpers
+function setDefaultIcon() {
+    trayIcon.setImage(path.join(ASSETS_DIR, '/img/note@2x.png'));
+}
+
 function setTitle(title = '') {
     let t = title;
+    const count = t.length;
 
-    if (t.length >= MAX_CHARS) {
+    if (count >= MAX_CHARS) {
         t = t.slice(0, MAX_CHARS - 3) + '...';
+    } else {
+        t = t.padEnd(MAX_CHARS - count, ' ');
     }
 
     trayIcon.setTitle(t);
+    trayIcon.setToolTip(title);
+}
+
+function rotateTitles(notes) {
+    if (notes.length === 0) {
+        return;
+    }
+
+    trayIcon.setImage(path.join(ASSETS_DIR, 'img/empty.png'));
+
+    for (let i = 0; i <= notes.length; i++) {
+        (function(i) {
+            interval = setTimeout(() => {
+                setTitle(notes[i]);
+
+                if (i === notes.length) {
+                    clearInterval(interval);
+                    return rotateTitles(notes);
+                }
+            }, TIMEOUT * i);
+        })(i);
+    }
 }

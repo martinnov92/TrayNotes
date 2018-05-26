@@ -51,3 +51,15 @@
   border-radius: 0 5px 5px 0;
 }
 
+.notes-list {
+  padding: 10px;
+}
+
+.notes-list li {
+  display: flex;
+}
+
+.notes-list li p {
+  flex: 1;
+}
+
