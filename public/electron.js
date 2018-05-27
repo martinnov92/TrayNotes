@@ -11,12 +11,16 @@ let trayIcon;
 let interval;
 let mainWindow;
 let NOTES = [];
+let visible = false;
 
 const WIDTH = 500;
 const HEIGHT = 600;
 const TIMEOUT = 3000;
 const MAX_CHARS = 30;
+// nastavení tray icony
 const ASSETS_DIR = path.join(__dirname, '../assets');
+const ICON_NAME = 'img/note@2x.png';
+const ICON_PATH = path.join(ASSETS_DIR, ICON_NAME);
 
 function createWindow () {
     // skrýt ikonu v docku hned po startu
@@ -45,11 +49,7 @@ function createWindow () {
         mainWindow.loadURL('http://localhost:3000');
     }
 
-    // nastavení tray icony
-    const iconName = 'img/note@2x.png';
-    const iconPath = path.join(ASSETS_DIR, iconName);
-
-    trayIcon = new Tray(iconPath);
+    trayIcon = new Tray(ICON_PATH);
     trayIcon.setToolTip('Otevřít aplikaci');
 
     trayIcon.on('click', (event, bounds, position) => {
@@ -75,6 +75,7 @@ function createWindow () {
     // main window events
     mainWindow.on('blur', () => {
         // zobrazit poznámky, pokud je okno zavřené
+        visible = false;
         rotateTitles(NOTES);
 
         // skrýt okno
@@ -82,6 +83,8 @@ function createWindow () {
     });
 
     mainWindow.on('show', () => {
+        visible = true;
+
         clearInterval(interval);
         setDefaultIcon();
         trayIcon.setTitle('');
@@ -90,6 +93,7 @@ function createWindow () {
 
     mainWindow.on('closed', () => {
         // zničit okno
+        visible = false;
         mainWindow = null;
     });
 
